@@ -12,14 +12,14 @@ S = length(Sections)
 J_in = linspace(0.2/Lanes, 0.6/Lanes, 9); J = length(J_in)
 
 Transition_Diagram = -1*ones(S, Lanes, J)
-Speeds_Transition = Array(Any, S, Lanes, J)
-Densities_Transition = Array(Any, S, Lanes, J)
+Speeds_Transition = Array{Float64}(S, Lanes, J)
+Densities_Transition = Array{Float64}(S, Lanes, J)
 
 Fluxes_Transition1 = zeros(S, Lanes, J)
 Fluxes_Transition2 = zeros(S, Lanes, J)
 
-D_Speeds_Transition = Array(Any, S, Lanes, J)
-D_Densities_Transition = Array(Any, S, Lanes, J)
+D_Speeds_Transition = Array{Float64}(S, Lanes, J)
+D_Densities_Transition = Array{Float64}(S, Lanes, J)
 
 D_Fluxes_Transition1 = zeros(S, Lanes, J)
 D_Fluxes_Transition2 = zeros(S, Lanes, J)

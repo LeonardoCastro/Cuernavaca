@@ -12,19 +12,19 @@ S = length(Sections)
 J_in = linspace(0.2/Lanes, 0.6/Lanes, 9); J = length(J_in)
 
 Transition_Diagram = -1*ones(S, Lanes, J)
-Speeds_Transition = Array(Any, S, Lanes, J)
-Densities_Transition = Array(Any, S, Lanes, J)
+Speeds_Transition = Array{Float64}(S, Lanes, J)
+Densities_Transition = Array{Float64}(S, Lanes, J)
 
 Fluxes_Transition1 = zeros(S, Lanes, J)
 Fluxes_Transition2 = zeros(S, Lanes, J)
 
-D_Speeds_Transition = Array(Any, S, Lanes, J)
-D_Densities_Transition = Array(Any, S, Lanes, J)
+D_Speeds_Transition = Array{Float64}(S, Lanes, J)
+D_Densities_Transition = Array{Float64}(S, Lanes, J)
 
 D_Fluxes_Transition1 = zeros(S, Lanes, J)
 D_Fluxes_Transition2 = zeros(S, Lanes, J)
 
-jldopen("S2-ConDatos-Ampli.jld", "w") do file
+jldopen("S2-Data-Express.jld", "w") do file
   for  (num_j, j) in enumerate(J_in)
 
       v2 = zeros(S, Lanes, A)
@@ -63,7 +63,7 @@ jldopen("S2-ConDatos-Ampli.jld", "w") do file
                   Insert_Vehicle!(S2[3].highway, 2t+1, f*P_ramp_S2[1][2]/Lanes)
                 end
 
-                for (num_ramp, (x0, lramp)) in enumerate(S2_in_rampa_ampli)
+                for (num_ramp, (x0, lramp)) in enumerate(S2_in_ramp_ampli)
                     Ramp!(x0, lramp, f*P_ramp_S2[1+num_ramp][1], f*P_ramp_S2[1+num_ramp][2], S2[2], 1)
                     num_ramp = x0 = lramp = 0
                 end
