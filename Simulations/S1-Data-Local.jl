@@ -4,7 +4,7 @@ using JLD
 Tf = 14400; T = 12; N = 9
 t1 = 10800
 
-Lanes = 2
+Lanes = 3
 A = fld(Tf-t1, T)+1
 Sections = [Highway.Sections1_CR[i] for i in 1:2:length(Highway.Sections1_CR)]
 S = length(Sections)
@@ -37,7 +37,7 @@ D_Speeds_Transition2 = zeros(S, Lanes, J)
 D_Densities_Transition1 = zeros(S, Lanes, J)
 D_Densities_Transition2 = zeros(S, Lanes, J)
 
-jldopen("S1-ConDatos-Ampli.jld", "w") do file
+jldopen("S1-ConDatos-Loc.jld", "w") do file
   for  (num_j, j) in enumerate(J_in)
 
     v0 = zeros(S, Lanes, A)
@@ -55,7 +55,8 @@ jldopen("S1-ConDatos-Ampli.jld", "w") do file
     println("Start simulations J_in = $j")
     for n = 1:N
 
-      Sense_1, S1 = Highway.Sense1()
+      Sense_1 = Highway.Highway2D(Lanes, 3640+6)
+      S1 = Sense_1.highway
 
       flujo_local0 = zeros(S, Lanes, A)
       velocidad_local_promedio0 = zeros(S, Lanes, A)
@@ -80,35 +81,42 @@ jldopen("S1-ConDatos-Ampli.jld", "w") do file
 
       for t = 0:Tf-1
 
-            Merge_Left_Right!(S1[2], S1[1], 2)
-            Merge_Right_Left!(S1[1], S1[2], 1)
+        Merge_Left_Right!(S1[2], S1[1], 2)
+        Merge_Right_Left!(S1[1], S1[2], 1)
 
-            f = j*Lanes/P_ramp_S1[1][1]
+        Merge_Left_Right!(S1[3], S1[2], 3)
+        Merge_Right_Left!(S1[2], S1[3], 2)
 
-            if rand() < j
-              Insert_Vehicle!(S1[1].highway, 2t, f*P_ramp_S1[1][2]/Lanes)
-            end
-            if rand() < j
-              Insert_Vehicle!(S1[2].highway, 2t+1, f*P_ramp_S1[1][2]/Lanes)
-            end
+        f = j*Lanes/P_ramp_S1[1][1]
 
-            for (num_ramp, (x0, lramp)) in enumerate(S1_in_ramp_ampli)
-                Ramp!(x0, lramp, f*P_ramp_S1[1+num_ramp][1], f*P_ampli_S1[1+num_ramp][2], S1[1], 1)
-                num_ramp = x0 = lramp = 0
-            end
+        if rand() < j
+          Insert_Vehicle!(S1[1].highway, 3t, f*P_ramp_S1[1][2]/Lanes)
+        end
+        if rand() < j
+          Insert_Vehicle!(S1[2].highway, 3t+1, f*P_ramp_S1[1][2]/Lanes)
+        end
+        if rand() < j
+          Insert_Vehicle!(S1[3].highway, 3t+2, f*P_ramp_S1[1][2]/Lanes)
+        end
 
-            for k = 1:Lanes
-              AccelerationNoiseS1(S1[k].highway)
-              DecelerationMove(S1[k])
-              if t > t1
-                Measure_Fluxes!(S1[k].highway, div(t-t1+1, T)+1, Sections, T,
-                            slice(flujo_local0, :, k, :), slice(flujo_local1, :, k, :),
-                            slice(flujo_local2, :, k, :))
-                Measure_Speeds!(S1[k].highway, div(t-t1+1, T)+1, Sections, T,
-                            slice(Arr_Speeds0, :, k, :), slice(Arr_Speeds1, :, k, :),
-                            slice(Arr_Speeds2, :, k, :))
-              end
-            end
+
+        for (num_ramp, (x0, lramp)) in enumerate(S1_in_ramp)
+            Ramp!(x0, lramp, f*P_ramp_S1[1+num_ramp][1], f*P_ramp_S1[1+num_ramp][2], S1[1], 1)
+        end
+        num_ramp = x0 = lramp = 0
+
+        for k = 1:Lanes
+          AccelerationNoiseS1(S1[k].highway)
+          DecelerationMove(S1[k])
+          if t > t1
+            Measure_Fluxes!(S1[k].highway, div(t-t1+1, T)+1, Sections, T,
+                        slice(flujo_local0, :, k, :), slice(flujo_local1, :, k, :),
+                        slice(flujo_local2, :, k, :))
+            Measure_Speeds!(S1[k].highway, div(t-t1+1, T)+1, Sections, T,
+                        slice(Arr_Speeds0, :, k, :), slice(Arr_Speeds1, :, k, :),
+                        slice(Arr_Speeds2, :, k, :))
+          end
+        end
       end
 
       ##### Management of Data
@@ -121,9 +129,9 @@ jldopen("S1-ConDatos-Ampli.jld", "w") do file
       Arr_Speeds0 = Arr_Speeds1 = Arr_Speeds2 = 0
 
 
-	    Measure_Densities!(f0, v0, d0, A, Lanes, S, N, flujo_local0, velocidad_local_promedio0)
-	    Measure_Densities!(f1, v1, d1, A, Lanes, S, N, flujo_local1, velocidad_local_promedio1)
-	    Measure_Densities!(f2, v2, d2, A, Lanes, S, N, flujo_local2, velocidad_local_promedio2)
+      Measure_Densities!(f0, v0, d0, A, Lanes, S, N, flujo_local0, velocidad_local_promedio0)
+      Measure_Densities!(f1, v1, d1, A, Lanes, S, N, flujo_local1, velocidad_local_promedio1)
+      Measure_Densities!(f2, v2, d2, A, Lanes, S, N, flujo_local2, velocidad_local_promedio2)
 
 
       println("ending of simulation $n")
@@ -131,15 +139,15 @@ jldopen("S1-ConDatos-Ampli.jld", "w") do file
       velocidad_local_promedio1 = flujo_local2 = velocidad_local_promedio2 = 0
     end
 
-  	writing_Arrays!(Lanes, S, num_j, Fluxes_Transition, Fluxes_Transition1, Fluxes_Transition2,
-    			 D_Fluxes_Transition, D_Fluxes_Transition1, D_Fluxes_Transition2, f0, f1, f2)
+    writing_Arrays!(Lanes, S, num_j, Fluxes_Transition, Fluxes_Transition1, Fluxes_Transition2,
+         D_Fluxes_Transition, D_Fluxes_Transition1, D_Fluxes_Transition2, f0, f1, f2)
 
-  	writing_Arrays!(Lanes, S, num_j, Speeds_Transition, Speeds_Transition1, Speeds_Transition2,
-    			 D_Speeds_Transition, D_Speeds_Transition1, D_Speeds_Transition2, v0, v1, v2)
+    writing_Arrays!(Lanes, S, num_j, Speeds_Transition, Speeds_Transition1, Speeds_Transition2,
+         D_Speeds_Transition, D_Speeds_Transition1, D_Speeds_Transition2, v0, v1, v2)
 
-  	writing_Arrays!(Lanes, S, num_j, Densities_Transition, Densities_Transition1,
-    			 Densities_Transition2, D_Densities_Transition, D_Densities_Transition1,
-    			 D_Densities_Transition2, d0, d1, d2)
+    writing_Arrays!(Lanes, S, num_j, Densities_Transition, Densities_Transition1,
+         Densities_Transition2, D_Densities_Transition, D_Densities_Transition1,
+         D_Densities_Transition2, d0, d1, d2)
 
     f0 = f1 = f2 = v0 = v1 = v2 = d0 = d1 = d2= 0
     println("Ends simulation J_in =  $j")
